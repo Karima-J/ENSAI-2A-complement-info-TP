@@ -1,4 +1,4 @@
-from typing import List, Optional
+# from typing import List, Optional
 from dao.type_attack_dao import TypeAttackDAO
 from utils.singleton import Singleton
 from dao.db_connection import DBConnection
@@ -42,6 +42,25 @@ class AttackDao(metaclass=Singleton):
             created = True
 
         return created
+
+    def find_attack_by_id(self, id: int) -> AbstractAttack:
+        """renvoie l attaque avec l ID donné ou si l attaque n est pas trouvée None"""
+        with DBConnection().connection as connection:
+            with connection.cursor() as cursor:
+                cursor.execute(
+                    "SELECT *                 "
+                    "  FROM tp.attack a                    "
+                    "  JOIN tp.attack_type at2  "
+                    "  ON a.id_attack_type = at2.id_attack_type            "
+                    " WHERE id_attack = %(id_attack)s ",
+                    {"id_attack": id},
+                )
+                res = cursor.fetchone()
+        attack = AttackFactory.instantiate_attack(res["attack_type_name"], res["id_attack"],
+                                                  res["power"], res["attack_name"],
+                                                  res["attack_descritpion"], res["accuracy"],
+                                                  res["element"])
+        return attack
 
 
 if __name__ == "__main__":
